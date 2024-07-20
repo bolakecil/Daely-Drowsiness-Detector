@@ -11,7 +11,6 @@ if 'active_button' not in st.session_state:
 if 'view' not in st.session_state:
     st.session_state.view = 'Day'  # Default view
 
-# Function to update the active button and view in session state
 def set_active_button(button_name):
     st.session_state.active_button = button_name
     st.session_state.view = button_name
@@ -32,26 +31,7 @@ st.markdown("""
         background-color: #FFFFFF;
         border: 1px solid #68C4FF;
     }
-    # not yet working
-    div.stButton > button[data-active="true"] {
-        color: #68C4FF !important;
-        background-color: #FFFFFF !important;
-        border: 1px solid #68C4FF !important;
-    }
 </style>
-<script>
-    # not yet working
-    document.addEventListener("DOMContentLoaded", function() {
-        const buttons = document.querySelectorAll("div.stButton > button");
-        buttons.forEach(button => {
-            if (button.getAttribute("aria-label") === "{st.session_state.active_button}") {
-                button.setAttribute("data-active", "true");
-            } else {
-                button.removeAttribute("data-active");
-            }
-        });
-    });
-</script>
 """, unsafe_allow_html=True)
 
 # Sample data for the plots
@@ -66,64 +46,79 @@ st.header('You\'ve been drowsy 6 times today.')
 
 today = datetime.today()
 
-# Find the start of this week (adjust `start_of_week` for different start days, e.g., Monday vs. Sunday)
-# This assumes the week starts on Monday
+# Find the start of this week
 start_of_week = today - timedelta(days=today.weekday())
-
 # Generate dates for the week
 week_dates = [(start_of_week + timedelta(days=i)).strftime('%d %b') for i in range(7)]
 
-# Layout for Day, Week, Month buttons
-col1, col2, col3 = st.columns(3)
-with col1:
-    if st.button('Day', key='Day_btn'):
-        set_active_button('Day')
-with col2:
-    if st.button('Week', key='Week_btn'):
-        set_active_button('Week')
-with col3:
-    if st.button('Month', key='Month_btn'):
-        set_active_button('Month')
+mobile_view = st.checkbox('Switch to Mobile View')
 
-
-
-# Display the current view based on the active button
-if st.session_state.view == 'Day':
-    st.write("Showing Day view")
-    mon, tue, wed, thu, fri, sat, sun = st.columns(7)
-    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    for i, col in enumerate([mon, tue, wed, thu, fri, sat, sun]):
-        col.button(week_dates[i], key=f'Day_{week_dates[i]}')
-        
-    for _ in range(6):
-        st.info('Drowsiness detected at 10:03 a.m.')
-
-    mon, tue, wed, thu, fri, sat, sun = st.columns(7)
-    st.subheader('Daily Analytics')
-    fig_day = px.line(data, x='Hour', y='Drowsiness Level', title='Drowsiness Trend Over the Day')
-    st.plotly_chart(fig_day)
-elif st.session_state.view == 'Week':
-    st.write("Showing Week view")
-    # Insert week-specific content here
-    st.subheader('Weekly Analytics')
-    week_data = pd.DataFrame({
-        'Day': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        'Drowsiness': [300, 400, 350, 500, 600, 700, 500]
-    })
-    fig_week = px.bar(week_data, x='Day', y='Drowsiness', title='Drowsiness Trend Over the Week')
-    st.plotly_chart(fig_week)
-elif st.session_state.view == 'Month':
-    st.write("Showing Month view")
-    # Insert month-specific content here
-    st.subheader('Monthly Analytics')
-    month_data = pd.DataFrame({
-        'Week': ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-        'Drowsiness': [1500, 1600, 1700, 1800]
-    })
-    fig_month = px.bar(month_data, x='Week', y='Drowsiness', title='Drowsiness Trend Over the Month')
-    st.plotly_chart(fig_month)
+if mobile_view:
+    view_selected = st.selectbox('Select View', ['Day', 'Week', 'Month'])
+    day_selected = st.selectbox('Select Day', week_dates)
 else:
-    st.write(f"Showing view for {st.session_state.view}")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button('Day', key='Day_btn'):
+            set_active_button('Day')
+    with col2:
+        if st.button('Week', key='Week_btn'):
+            set_active_button('Week')
+    with col3:
+        if st.button('Month', key='Month_btn'):
+            set_active_button('Month')
+
+if mobile_view:
+    if view_selected == 'Day':
+        st.write(f'Selected Day: {day_selected}')
+        for _ in range(6):
+            st.info('Drowsiness detected at 10:03 a.m.')
+        fig_day = px.line(data, x='Hour', y='Drowsiness Level', title='Drowsiness Trend Over the Day')
+        st.plotly_chart(fig_day)
+    elif view_selected == 'Week':
+        week_data = pd.DataFrame({
+            'Day': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            'Drowsiness': [300, 400, 350, 500, 600, 700, 500]
+        })
+        fig_week = px.bar(week_data, x='Day', y='Drowsiness', title='Drowsiness Trend Over the Week')
+        st.plotly_chart(fig_week)
+    elif view_selected == 'Month':
+        month_data = pd.DataFrame({
+            'Week': ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            'Drowsiness': [1500, 1600, 1700, 1800]
+        })
+        fig_month = px.bar(month_data, x='Week', y='Drowsiness', title='Drowsiness Trend Over the Month')
+        st.plotly_chart(fig_month)
+else:
+    if st.session_state.view == 'Day':
+        mon, tue, wed, thu, fri, sat, sun = st.columns(7)
+        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        for i, col in enumerate([mon, tue, wed, thu, fri, sat, sun]):
+            col.button(week_dates[i], key=f'Day_{week_dates[i]}')
+
+        for _ in range(6):
+            st.info('Drowsiness detected at 10:03 a.m.')
+
+        st.subheader('Daily Analytics')
+        fig_day = px.line(data, x='Hour', y='Drowsiness Level', title='Drowsiness Trend Over the Day')
+        st.plotly_chart(fig_day)
+    elif st.session_state.view == 'Week':
+        st.subheader('Weekly Analytics')
+        week_data = pd.DataFrame({
+            'Day': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            'Drowsiness': [300, 400, 350, 500, 600, 700, 500]
+        })
+        fig_week = px.bar(week_data, x='Day', y='Drowsiness', title='Drowsiness Trend Over the Week')
+        st.plotly_chart(fig_week)
+    elif st.session_state.view == 'Month':
+        st.subheader('Monthly Analytics')
+        month_data = pd.DataFrame({
+            'Week': ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            'Drowsiness': [1500, 1600, 1700, 1800]
+        })
+        fig_month = px.bar(month_data, x='Week', y='Drowsiness', title='Drowsiness Trend Over the Month')
+        st.plotly_chart(fig_month)
+
 
 # General analytics applicable to all views
 st.header('Overall Analytics')
