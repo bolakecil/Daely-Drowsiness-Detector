@@ -3,26 +3,55 @@ import plotly.express as px
 import pandas as pd
 from datetime import datetime, timedelta
 
+st.set_page_config(page_title="Drowsiness Detection Dashboard")
+
+# Initialize session state for active button and view
+if 'active_button' not in st.session_state:
+    st.session_state.active_button = 'Day'  # Default active button and view
+if 'view' not in st.session_state:
+    st.session_state.view = 'Day'  # Default view
+
+# Function to update the active button and view in session state
+def set_active_button(button_name):
+    st.session_state.active_button = button_name
+    st.session_state.view = button_name
+
 st.markdown("""
 <style>
     div.stButton > button {
         width: 100%;
         border-radius: 10px;
-        border: 1px solid #ccc;
-        color: white;
+        border: 1px solid #68C4FF;
+        background-color: #68C4FF;
+        color: #FFFFFF;
         font-weight: bold;
         padding: 8px 0;
     }
     div.stButton > button:hover {
-        color: black;
-        border: 1px solid black;
+        color: #68C4FF;
+        background-color: #FFFFFF;
+        border: 1px solid #68C4FF;
     }
-    #havent figured this active action out yet, udah coba2 pke active button
-    # .css-1qb1u2v-ButtonContainer.e1tzin5v1 {
-    #     background-color: #4caf50; /* Change color for the selected view */
-    #     color: white; /* White text for selected button */
-    # }
+    # not yet working
+    div.stButton > button[data-active="true"] {
+        color: #68C4FF !important;
+        background-color: #FFFFFF !important;
+        border: 1px solid #68C4FF !important;
+    }
 </style>
+<script>
+    # not yet working
+    document.addEventListener("DOMContentLoaded", function() {
+        const buttons = document.querySelectorAll("div.stButton > button");
+        buttons.forEach(button => {
+            if (button.getAttribute("aria-label") === "{st.session_state.active_button}") {
+                button.setAttribute("data-active", "true");
+            } else {
+                button.removeAttribute("data-active");
+            }
+        });
+    });
+</script>
 """, unsafe_allow_html=True)
 
 # Sample data for the plots
@@ -44,44 +73,68 @@ start_of_week = today - timedelta(days=today.weekday())
 # Generate dates for the week
 week_dates = [(start_of_week + timedelta(days=i)).strftime('%d %b') for i in range(7)]
 
-# Use session state to track which view is active
-if 'view' not in st.session_state:
-    st.session_state.view = 'Day'  # Default view
-
+# Layout for Day, Week, Month buttons
 col1, col2, col3 = st.columns(3)
 with col1:
-    if st.button('Day'):
-        st.session_state.view = 'Day'
+    if st.button('Day', key='Day_btn'):
+        set_active_button('Day')
 with col2:
-    if st.button('Week'):
-        st.session_state.view = 'Week'
+    if st.button('Week', key='Week_btn'):
+        set_active_button('Week')
 with col3:
-    if st.button('Month'):
-        st.session_state.view = 'Month'
+    if st.button('Month', key='Month_btn'):
+        set_active_button('Month')
 
-mon, tue, wed, thu, fri, sat, sun = st.columns(7)
-days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-for i, col in enumerate([mon, tue, wed, thu, fri, sat, sun]):
-    col.button(week_dates[i])
 
-# # Display current view
-# st.write(f'Current View: {st.session_state.view}')
-    
-for _ in range(6):
-    st.info('Drowsiness detected at 10:03 a.m.')
 
-mon, tue, wed, thu, fri, sat, sun = st.columns(7)
+# Display the current view based on the active button
+if st.session_state.view == 'Day':
+    st.write("Showing Day view")
+    mon, tue, wed, thu, fri, sat, sun = st.columns(7)
+    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    for i, col in enumerate([mon, tue, wed, thu, fri, sat, sun]):
+        col.button(week_dates[i], key=f'Day_{week_dates[i]}')
+        
+    for _ in range(6):
+        st.info('Drowsiness detected at 10:03 a.m.')
 
-# ANALYTICS
-st.header('Analytics')
+    mon, tue, wed, thu, fri, sat, sun = st.columns(7)
+    st.subheader('Daily Analytics')
+    fig_day = px.line(data, x='Hour', y='Drowsiness Level', title='Drowsiness Trend Over the Day')
+    st.plotly_chart(fig_day)
+elif st.session_state.view == 'Week':
+    st.write("Showing Week view")
+    # Insert week-specific content here
+    st.subheader('Weekly Analytics')
+    week_data = pd.DataFrame({
+        'Day': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        'Drowsiness': [300, 400, 350, 500, 600, 700, 500]
+    })
+    fig_week = px.bar(week_data, x='Day', y='Drowsiness', title='Drowsiness Trend Over the Week')
+    st.plotly_chart(fig_week)
+elif st.session_state.view == 'Month':
+    st.write("Showing Month view")
+    # Insert month-specific content here
+    st.subheader('Monthly Analytics')
+    month_data = pd.DataFrame({
+        'Week': ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        'Drowsiness': [1500, 1600, 1700, 1800]
+    })
+    fig_month = px.bar(month_data, x='Week', y='Drowsiness', title='Drowsiness Trend Over the Month')
+    st.plotly_chart(fig_month)
+else:
+    st.write(f"Showing view for {st.session_state.view}")
+
+# General analytics applicable to all views
+st.header('Overall Analytics')
 st.subheader('You tend to feel most drowsy around 1:25 PM each day.')
-fig = px.line(data, x='Hour', y='Drowsiness Level', title='Drowsiness Trend Over Time')
-st.plotly_chart(fig)
+fig_overall = px.line(data, x='Hour', y='Drowsiness Level', title='Overall Drowsiness Trend Over Time')
+st.plotly_chart(fig_overall)
 
 st.subheader("You've been 21% drowsier this week.")
-week_data = pd.DataFrame({
+week_data_overall = pd.DataFrame({
     'Week': ['Last Week', 'This Week'],
     'Drowsiness': [500, 600]
 })
-fig_week = px.bar(week_data, x='Week', y='Drowsiness', title='Weekly Drowsiness Comparison')
-st.plotly_chart(fig_week)
+fig_week_overall = px.bar(week_data_overall, x='Week', y='Drowsiness', title='Weekly Drowsiness Comparison')
+st.plotly_chart(fig_week_overall)
