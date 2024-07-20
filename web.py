@@ -35,7 +35,6 @@ st.title('Hi, Supriyadi.')
 
 st.header('You\'ve been drowsy 6 times today.')
 
-# Determine today's date
 today = datetime.today()
 
 # Find the start of this week (adjust `start_of_week` for different start days, e.g., Monday vs. Sunday)
@@ -49,7 +48,6 @@ week_dates = [(start_of_week + timedelta(days=i)).strftime('%d %b') for i in ran
 if 'view' not in st.session_state:
     st.session_state.view = 'Day'  # Default view
 
-# Display the view and day buttons
 col1, col2, col3 = st.columns(3)
 with col1:
     if st.button('Day'):
@@ -61,7 +59,6 @@ with col3:
     if st.button('Month'):
         st.session_state.view = 'Month'
 
-# Show the dates for the week
 mon, tue, wed, thu, fri, sat, sun = st.columns(7)
 days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 for i, col in enumerate([mon, tue, wed, thu, fri, sat, sun]):
