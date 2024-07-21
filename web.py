@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 
 st.set_page_config(page_title="Drowsiness Detection Dashboard")
 
-# Initialize session state for active button and view
 if 'active_button' not in st.session_state:
     st.session_state.active_button = 'Day'  # Default active button and view
 if 'view' not in st.session_state:
