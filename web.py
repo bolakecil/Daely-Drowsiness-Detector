@@ -3,40 +3,40 @@ import plotly.express as px
 import pandas as pd
 from datetime import datetime, timedelta
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import db, credentials
+from dotenv import load_dotenv
+import os
 
-# Initialize Firebase
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
+
 if not firebase_admin._apps:
-    cred = credentials.Certificate('daely-drowsiness-detection-firebase-adminsdk-m97au-66db74f894.json')
-    firebase_admin.initialize_app(cred)
-
-# Initialize Firestore DB
-db = firestore.client()
+    cred = credentials.Certificate('credentials.json')
+    firebase_admin.initialize_app(cred, {'databaseURL': DATABASE_URL})
+ref = db.reference('/')
 
 def get_drowsiness_data():
-    # Reference to the Firestore collection
-    collection_ref = db.collection('drowsiness_predictions')
-    
-    # Retrieve all documents in the collection
-    docs = collection_ref.stream()
-    
-    data = []
-    for doc in docs:
-        doc_data = doc.to_dict()
-        # Parse the time dictionary into a datetime object
-        time_data = doc_data['time']
-        timestamp = datetime(
-            int(time_data['year']),
-            int(time_data['month']),
-            int(time_data['date']),
-            int(time_data['hour']),
-            int(time_data['minute']),
-            int(time_data['second'])
-        )
-        doc_data['timestamp'] = timestamp
-        data.append(doc_data)
-    
-    return data
+    data = ref.get()
+
+    if data is None:
+        return []
+
+    parsed_data = []
+    for key, value in data.items():
+        if value.get('prediction') == 'Active Subjects': #harusnya Fatigue Subjects
+            time_data = value['time']
+            timestamp = datetime(
+                int(time_data['year']),
+                int(time_data['month']),
+                int(time_data['date']),
+                int(time_data['hour']),
+                int(time_data['minute']),
+                int(time_data['second'])
+            )
+            value['timestamp'] = timestamp
+            parsed_data.append(value)
+    return parsed_data
+
 
 st.set_page_config(page_title="Drowsiness Detection Dashboard")
 
