@@ -152,14 +152,46 @@ else:
         month_data = aggregate_monthly_data(drowsiness_data)
         fig_month = px.bar(month_data, x='week', y='count', title='Drowsiness Detections Over the Month')
         st.plotly_chart(fig_month)
+        
+def calculate_weekly_change(data):
+    df = pd.DataFrame(data)
+    df['week'] = df['timestamp'].dt.isocalendar().week
+    current_week = datetime.now().isocalendar()[1]
+    
+    current_week_data = df[df['week'] == current_week]
+    last_week_data = df[df['week'] == current_week - 1]
+    
+    current_week_count = len(current_week_data)
+    last_week_count = len(last_week_data)
+    
+    if last_week_count == 0:
+        return "No data from last week to compare."
+    
+    change_percentage = ((current_week_count - last_week_count) / last_week_count) * 100
+    return change_percentage
+
+def get_highest_drowsiness_period(data):
+    df = pd.DataFrame(data)
+    df['time_period'] = pd.cut(df['timestamp'].dt.hour, #edit as needed, interval 1h or 2h
+                               bins=[0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24],
+                               labels=['22:00-00:00', '00:00-02:00', '02:00-04:00', 
+                                       '04:00-06:00', '06:00-08:00', '08:00-10:00', 
+                                       '10:00-12:00', '12:00-14:00', '14:00-16:00', 
+                                       '16:00-18:00', '18:00-20:00', '20:00-22:00'], 
+                               right=False)
+    highest_period = df['time_period'].value_counts().idxmax()
+    max_count = df['time_period'].value_counts().max()
+    return highest_period
 
 # General analytics applicable to all views
+drowsy_period=get_highest_drowsiness_period(drowsiness_data)
 st.header('Overall Analytics')
-st.subheader('You tend to feel most drowsy around 1:25 PM each day.')
+st.subheader(f"You tend to feel most drowsy around {drowsy_period} each day." )
 fig_overall = px.histogram(drowsiness_data, x='timestamp', title='Overall Drowsiness Detections Over Time', nbins=24)
 st.plotly_chart(fig_overall)
 
-st.subheader("You've been 21% drowsier this week.")
+change_percentage=calculate_weekly_change(drowsiness_data)
+st.subheader(f"You've been {change_percentage}% drowsier this week.")
 week_data_overall = aggregate_weekly_data(drowsiness_data)
 fig_week_overall = px.bar(week_data_overall, x='day', y='count', title='Weekly Drowsiness Comparison')
 st.plotly_chart(fig_week_overall)
