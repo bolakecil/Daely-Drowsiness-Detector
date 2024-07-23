@@ -7,6 +7,7 @@ from firebase_admin import db, credentials
 from dotenv import load_dotenv
 import os
 
+st.set_page_config(page_title="Drowsiness Detection Dashboard")
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
@@ -17,13 +18,11 @@ ref = db.reference('/')
 
 def get_drowsiness_data():
     data = ref.get()
-
     if data is None:
         return []
-
     parsed_data = []
     for key, value in data.items():
-        if value.get('prediction') == 'Active Subjects': #harusnya Fatigue Subjects
+        if value.get('prediction') == 'Fatigue Subjects': #harusnya Fatigue Subjects
             time_data = value['time']
             timestamp = datetime(
                 int(time_data['year']),
@@ -36,9 +35,6 @@ def get_drowsiness_data():
             value['timestamp'] = timestamp
             parsed_data.append(value)
     return parsed_data
-
-
-st.set_page_config(page_title="Drowsiness Detection Dashboard")
 
 if 'active_button' not in st.session_state:
     st.session_state.active_button = 'Day'  # Default active button and view
@@ -71,20 +67,21 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.title('Hi, Supriyadi.')
-
-st.header('You\'ve been drowsy 6 times today.')
-
-today = datetime.today()
-
-# Find the start of this week
-start_of_week = today - timedelta(days=today.weekday())
-# Generate dates for the week
-week_dates = [(start_of_week + timedelta(days=i)).strftime('%d %b') for i in range(7)]
-
-mobile_view = st.checkbox('Switch to Mobile View')
+def calculate_today_drowsy_occurrences(data):
+    today = datetime.today().date()
+    today_data = [entry for entry in data if entry['timestamp'].date() == today]
+    return len(today_data)
 
 drowsiness_data = get_drowsiness_data()
+drowsy_today = calculate_today_drowsy_occurrences(drowsiness_data)
+
+st.title('Hi, Supriyadi.')
+st.header(f'You\'ve been drowsy {drowsy_today} times today.')
+
+today = datetime.today()
+start_of_week = today - timedelta(days=today.weekday()) # Find the start of this week
+week_dates = [(start_of_week + timedelta(days=i)).strftime('%d %b') for i in range(7)] # Generate dates for the week
+mobile_view = st.checkbox('Switch to Mobile View')
 
 def aggregate_weekly_data(data):
     df = pd.DataFrame(data)
@@ -101,8 +98,10 @@ def aggregate_monthly_data(data):
     return monthly_data
 
 if mobile_view:
+    today_str = today.strftime('%d %b')
+    default_day_index = week_dates.index(today_str)
     view_selected = st.selectbox('Select View', ['Day', 'Week', 'Month'])
-    day_selected = st.selectbox('Select Day', week_dates)
+    day_selected = st.selectbox('Select Day', week_dates, index=default_day_index)
 else:
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -114,15 +113,18 @@ else:
     with col3:
         if st.button('Month', key='Month_btn'):
             set_active_button('Month')
+            
+if 'selected_date' not in st.session_state:
+    st.session_state.selected_date = today.strftime('%d %b')  # Default to today's date
 
 if mobile_view:
     if view_selected == 'Day':
-        st.write(f'Selected Day: {day_selected}')
-        for entry in drowsiness_data:
-            if entry['timestamp'].strftime('%d %b') == day_selected:
-                st.info(f"Drowsiness detected at {entry['timestamp'].strftime('%I:%M %p')}")
-        fig_day = px.histogram(drowsiness_data, x='timestamp', title='Drowsiness Detections Over the Day', nbins=24)
-        st.plotly_chart(fig_day)
+        day_data = [entry for entry in drowsiness_data if entry['timestamp'].strftime('%d %b') == day_selected]
+        for entry in day_data:
+            st.info(f"Drowsiness detected at {entry['timestamp'].strftime('%I:%M %p')}")
+        if day_data:
+            fig_day = px.histogram(day_data, x='timestamp', title='Drowsiness Detections Over the Day', nbins=24)
+            st.plotly_chart(fig_day)
     elif view_selected == 'Week':
         week_data = aggregate_weekly_data(drowsiness_data)
         fig_week = px.bar(week_data, x='day', y='count', title='Drowsiness Detections Over the Week')
@@ -136,15 +138,15 @@ else:
         mon, tue, wed, thu, fri, sat, sun = st.columns(7)
         days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
         for i, col in enumerate([mon, tue, wed, thu, fri, sat, sun]):
-            col.button(week_dates[i], key=f'Day_{week_dates[i]}')
-
-        for entry in drowsiness_data:
-            if entry['timestamp'].strftime('%d %b') in week_dates:
-                st.info(f"Drowsiness detected at {entry['timestamp'].strftime('%I:%M %p')}")
-        
-        st.subheader('Daily Analytics')
-        fig_day = px.histogram(drowsiness_data, x='timestamp', title='Drowsiness Detections Over the Day', nbins=24)
-        st.plotly_chart(fig_day)
+             if col.button(week_dates[i], key=f'Day_{week_dates[i]}'):
+                st.session_state.selected_date = week_dates[i]
+        selected_day_data = [entry for entry in drowsiness_data if entry['timestamp'].strftime('%d %b') == st.session_state.selected_date]
+        for entry in selected_day_data:
+            st.info(f"Drowsiness detected at {entry['timestamp'].strftime('%I:%M %p')}")
+        if selected_day_data:
+            # st.subheader('Daily Analytics')
+            fig_day = px.histogram(selected_day_data, x='timestamp', title='Drowsiness Detections Over the Day', nbins=24)
+            st.plotly_chart(fig_day)
     elif st.session_state.view == 'Week':
         st.subheader('Weekly Analytics')
         week_data = aggregate_weekly_data(drowsiness_data)
@@ -160,16 +162,12 @@ def calculate_weekly_change(data):
     df = pd.DataFrame(data)
     df['week'] = df['timestamp'].dt.isocalendar().week
     current_week = datetime.now().isocalendar()[1]
-    
     current_week_data = df[df['week'] == current_week]
     last_week_data = df[df['week'] == current_week - 1]
-    
     current_week_count = len(current_week_data)
     last_week_count = len(last_week_data)
-    
     if last_week_count == 0:
         return "No data from last week to compare."
-    
     change_percentage = ((current_week_count - last_week_count) / last_week_count) * 100
     return change_percentage
 
