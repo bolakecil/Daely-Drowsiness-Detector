@@ -193,7 +193,7 @@ st.subheader(f"You tend to feel most drowsy around {drowsy_period} each day.")
 fig_overall = px.histogram(drowsiness_data, x='timestamp', title='Overall Drowsiness Detections Over Time', nbins=24)
 st.plotly_chart(fig_overall)
 
-change_percentage=calculate_weekly_change(drowsiness_data)
+change_percentage = calculate_weekly_change(drowsiness_data)
 st.subheader(f"You've been {change_percentage}% drowsier this week.")
 week_data_overall = aggregate_weekly_data(drowsiness_data)
 fig_week_overall = px.bar(week_data_overall, x='day', y='count', title='Weekly Drowsiness Comparison')
