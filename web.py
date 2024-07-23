@@ -187,9 +187,9 @@ def get_highest_drowsiness_period(data):
     return highest_period
 
 # General analytics applicable to all views
-drowsy_period=get_highest_drowsiness_period(drowsiness_data)
+drowsy_period = get_highest_drowsiness_period(drowsiness_data)
 st.header('Overall Analytics')
-st.subheader(f"You tend to feel most drowsy around {drowsy_period} each day." )
+st.subheader(f"You tend to feel most drowsy around {drowsy_period} each day.")
 fig_overall = px.histogram(drowsiness_data, x='timestamp', title='Overall Drowsiness Detections Over Time', nbins=24)
 st.plotly_chart(fig_overall)
 
