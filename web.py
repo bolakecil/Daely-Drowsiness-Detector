@@ -65,6 +65,9 @@ st.markdown("""
         background-color: #FFFFFF;
         border: 1px solid #68C4FF;
     }
+    div.stButton > button:focus:not(:active) {
+        color: #FFFFFF;
+    }
 </style>
 """, unsafe_allow_html=True)
 
