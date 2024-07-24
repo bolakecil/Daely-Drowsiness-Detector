@@ -44,7 +44,6 @@ def get_drowsiness_data():
                 int(time_data['second'])
             )
             value['timestamp'] = timestamp
-            # value['image'] = preprocess_base64_image(value['image'])
             parsed_data.append(value)
     return parsed_data
 
