@@ -9,6 +9,7 @@ from PIL import Image
 import base64
 import os
 import io
+import calendar
 
 st.set_page_config(page_title="Drowsiness Detection Dashboard")
 load_dotenv()
@@ -105,12 +106,16 @@ def aggregate_weekly_data(data):
     weekly_data = df.groupby('day').size().reindex(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']).reset_index(name='count')
     return weekly_data
 
-def aggregate_monthly_data(data):
+def aggregate_monthly_data(data, selected_month):
     df = pd.DataFrame(data)
-    df['month'] = df['timestamp'].dt.month
-    df['week'] = df['timestamp'].dt.isocalendar().week
-    monthly_data = df.groupby('week').size().reset_index(name='count')
-    return monthly_data
+    df = df[df['timestamp'].dt.month == selected_month]
+    df['day'] = df['timestamp'].dt.day
+    daily_data = df.groupby('day').size().reset_index(name='count')
+
+    max_day = pd.Timestamp(year=2024, month=selected_month, day=1).days_in_month
+    all_days = pd.DataFrame({'day': range(1, max_day + 1)})
+    daily_data = pd.merge(all_days, daily_data, on='day', how='left').fillna(0)
+    return daily_data
 
 if mobile_view:
     today_str = today.strftime('%d %b')
@@ -132,6 +137,14 @@ else:
             
 if 'selected_date' not in st.session_state:
     st.session_state.selected_date = today.strftime('%d %b')  # Default to today's date
+
+def handle_monthly_view(data, current_year):
+    months = list(calendar.month_name)[1:]  # Get month names and skip the first empty entry
+    current_month = datetime.now().month
+    month_selected = st.selectbox('Select Month', months, index=current_month-1)  # Use month names instead of numbers
+    month_index = months.index(month_selected) + 1  # Get the index of the selected month (1-based)
+    monthly_day_data = aggregate_monthly_data(data, month_index)
+    return monthly_day_data, month_selected
 
 if mobile_view:
     if view_selected == 'Day':
@@ -198,9 +211,12 @@ if mobile_view:
         fig_week = px.bar(week_data, x='day', y='count', title='Drowsiness Detections Over the Week')
         st.plotly_chart(fig_week)
     elif view_selected == 'Month':
-        month_data = aggregate_monthly_data(drowsiness_data)
-        fig_month = px.bar(month_data, x='week', y='count', title='Drowsiness Detections Over the Month')
-        st.plotly_chart(fig_month)
+        monthly_day_data, month_selected = handle_monthly_view(drowsiness_data)
+        if monthly_day_data.empty:
+            st.write("No drowsiness data available for this month.")
+        else:
+            fig_month_daily = px.bar(monthly_day_data, x='day', y='count', title=f'Drowsiness Detections for Month {month_selected}')
+            st.plotly_chart(fig_month_daily)
 else:
     if st.session_state.view == 'Day':
         mon, tue, wed, thu, fri, sat, sun = st.columns(7)
@@ -272,10 +288,25 @@ else:
         fig_week = px.bar(week_data, x='day', y='count', title='Drowsiness Detections Over the Week')
         st.plotly_chart(fig_week)
     elif st.session_state.view == 'Month':
-        st.subheader('Monthly Analytics')
-        month_data = aggregate_monthly_data(drowsiness_data)
-        fig_month = px.bar(month_data, x='week', y='count', title='Drowsiness Detections Over the Month')
-        st.plotly_chart(fig_month)
+        # monthly_day_data, month_selected = handle_monthly_view(drowsiness_data)
+        # if monthly_day_data.empty:
+        #     st.write("No drowsiness data available for this month.")
+        # else:
+        #     fig_month_daily = px.bar(monthly_day_data, x='day', y='count',
+        #                             title=f'Drowsiness Detections for {month_selected}',
+        #                             labels={'day': 'Day of the Month', 'count': 'Number of Drowsiness Events'})
+        #     fig_month_daily.update_layout(xaxis_type='category')
+        #     st.plotly_chart(fig_month_daily)
+        current_year = datetime.now().year
+        monthly_day_data, month_selected = handle_monthly_view(drowsiness_data, current_year)
+        if monthly_day_data.empty:
+            st.write("No drowsiness data available for this month.")
+        else:
+            fig_month_daily = px.bar(monthly_day_data, x='day', y='count',
+                                    title=f'Drowsiness Detections for {month_selected}',
+                                    labels={'day': 'Day of the Month', 'count': 'Number of Drowsiness Events'})
+            fig_month_daily.update_layout(xaxis_type='category')
+            st.plotly_chart(fig_month_daily)
         
 def calculate_weekly_change(data):
     df = pd.DataFrame(data)
