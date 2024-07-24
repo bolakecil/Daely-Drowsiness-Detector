@@ -133,32 +133,59 @@ if 'selected_date' not in st.session_state:
 if mobile_view:
     if view_selected == 'Day':
         day_data = [entry for entry in drowsiness_data if entry['timestamp'].strftime('%d %b') == day_selected]
+        day_data.sort(key=lambda x: x['timestamp'], reverse=True)
+
+        if 'page' not in st.session_state:
+            st.session_state.page = 0  
+
+        items_per_page = 8  
+
+        def next_page():
+            st.session_state.page += 1
+
+        def prev_page():
+            st.session_state.page -= 1
 
         if not day_data:
             st.info(f"No drowsiness detected on {day_selected}")
         else:
-            for entry in day_data:
+            start_index = st.session_state.page * items_per_page
+            end_index = start_index + items_per_page
+            displayed_data = day_data[start_index:end_index]
+
+            for entry in displayed_data:
                 timestamp = entry['timestamp'].strftime('%I:%M %p')
                 image_base64 = entry.get('image')
                 if image_base64:
                     st.markdown(f"""
-                        <div style="display: flex; align-items: center; padding-bottom: 10px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 10px; background-color: #e1f5fe; border-left: 5px solid #2196f3; padding: 8px; border-radius: 5px;">
                             <div style="flex: 1;">
                                 <strong>Drowsiness detected at {timestamp}</strong>
                             </div>
                             <div style="flex: 0;">
-                                <img src="data:image/png;base64,{image_base64}" alt="Drowsiness Image" style="max-width: 50px; max-height: 50px; margin-left: 10px;">
+                                <img src="data:image/png;base64,{image_base64}" alt="Drowsiness Image" style="width: 50px; height: 50px; margin-left: 10px;">
                             </div>
                         </div>
                     """, unsafe_allow_html=True)
                 else:
                     st.markdown(f"""
-                        <div style="display: flex; align-items: center; padding-bottom: 10px;">
+                        <div style="display: flex; align-items: center; margin-bottom: 10px; background-color: #e1f5fe; border-left: 5px solid #2196f3; padding: 8px; border-radius: 5px;">
                             <div style="flex: 1;">
                                 <strong>Drowsiness detected at {timestamp}</strong>
                             </div>
                         </div>
                     """, unsafe_allow_html=True)
+
+            total_pages = len(day_data) // items_per_page + (1 if len(day_data) % items_per_page != 0 else 0)
+            st.write(f"Page {st.session_state.page + 1} of {total_pages}")
+
+            col1, col2 = st.columns(2)
+            if st.session_state.page > 0:
+                with col1:
+                    st.button("Previous", on_click=prev_page)
+            if end_index < len(day_data):
+                with col2:
+                    st.button("Next", on_click=next_page)
 
         if day_data:
             fig_day = px.histogram(day_data, x='timestamp', title='Drowsiness Detections Over the Day', nbins=24)
@@ -178,32 +205,63 @@ else:
         for i, col in enumerate([mon, tue, wed, thu, fri, sat, sun]):
              if col.button(week_dates[i], key=f'Day_{week_dates[i]}'):
                 st.session_state.selected_date = week_dates[i]
-        selected_day_data = [entry for entry in drowsiness_data if entry['timestamp'].strftime('%d %b') == st.session_state.selected_date]
-        for entry in selected_day_data:
-            timestamp = entry['timestamp'].strftime('%I:%M %p')
-            image_base64 = entry.get('image')
-            if image_base64:
-                st.markdown(f"""
-                    <div style="display: flex; align-items: center; padding-bottom: 10px;">
-                        <div style="flex: 1;">
-                            <strong>Drowsiness detected at {timestamp}</strong>
+        day_data = [entry for entry in drowsiness_data if entry['timestamp'].strftime('%d %b') == st.session_state.selected_date]
+        day_data.sort(key=lambda x: x['timestamp'], reverse=True)
+
+        if 'page' not in st.session_state:
+            st.session_state.page = 0  
+
+        items_per_page = 8  
+
+        def next_page():
+            st.session_state.page += 1
+
+        def prev_page():
+            st.session_state.page -= 1
+
+        if not day_data:
+            st.info(f"No drowsiness detected on {day_selected}")
+        else:
+            start_index = st.session_state.page * items_per_page
+            end_index = start_index + items_per_page
+            displayed_data = day_data[start_index:end_index]
+
+            for entry in displayed_data:
+                timestamp = entry['timestamp'].strftime('%I:%M %p')
+                image_base64 = entry.get('image')
+                if image_base64:
+                    st.markdown(f"""
+                        <div style="display: flex; align-items: center; margin-bottom: 10px; background-color: #e1f5fe; border-left: 5px solid #2196f3; padding: 8px; border-radius: 5px;">
+                            <div style="flex: 1;">
+                                <strong>Drowsiness detected at {timestamp}</strong>
+                            </div>
+                            <div style="flex: 0;">
+                                <img src="data:image/png;base64,{image_base64}" alt="Drowsiness Image" style="width: 50px; height: 50px; margin-left: 10px;">
+                            </div>
                         </div>
-                        <div style="flex: 0;">
-                            <img src="data:image/png;base64,{image_base64}" alt="Drowsiness Image" style="max-width: 50px; max-height: 50px; margin-left: 10px;">
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown(f"""
+                        <div style="display: flex; align-items: center; margin-bottom: 10px; background-color: #e1f5fe; border-left: 5px solid #2196f3; padding: 8px; border-radius: 5px;">
+                            <div style="flex: 1;">
+                                <strong>Drowsiness detected at {timestamp}</strong>
+                            </div>
                         </div>
-                    </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown(f"""
-                    <div style="display: flex; align-items: center; padding-bottom: 10px;">
-                        <div style="flex: 1;">
-                            <strong>Drowsiness detected at {timestamp}</strong>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
-        if selected_day_data:
+                    """, unsafe_allow_html=True)
+
+            total_pages = len(day_data) // items_per_page + (1 if len(day_data) % items_per_page != 0 else 0)
+            st.write(f"Page {st.session_state.page + 1} of {total_pages}")
+
+            col1, col2 = st.columns(2)
+            if st.session_state.page > 0:
+                with col1:
+                    st.button("Previous", on_click=prev_page)
+            if end_index < len(day_data):
+                with col2:
+                    st.button("Next", on_click=next_page)
+        if day_data:
             st.subheader('Daily Analytics')
-            fig_day = px.histogram(selected_day_data, x='timestamp', title='Drowsiness Detections Over the Day', nbins=24)
+            fig_day = px.histogram(day_data, x='timestamp', title='Drowsiness Detections Over the Day', nbins=24)
             st.plotly_chart(fig_day)
     elif st.session_state.view == 'Week':
         st.subheader('Weekly Analytics')
