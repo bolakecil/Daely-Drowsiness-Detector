@@ -5,7 +5,10 @@ from datetime import datetime, timedelta
 import firebase_admin
 from firebase_admin import db, credentials
 from dotenv import load_dotenv
+from PIL import Image
+import base64
 import os
+import io
 
 st.set_page_config(page_title="Drowsiness Detection Dashboard")
 load_dotenv()
@@ -16,13 +19,21 @@ if not firebase_admin._apps:
     firebase_admin.initialize_app(cred, {'databaseURL': DATABASE_URL})
 ref = db.reference('/')
 
+def preprocess_base64_image(base64_string):
+    """
+    Returns image from base64 encoded image
+    """
+    image_data = base64.b64decode(base64_string)
+    image = Image.open(io.BytesIO(image_data))
+    return image
+
 def get_drowsiness_data():
     data = ref.get()
     if data is None:
         return []
     parsed_data = []
     for key, value in data.items():
-        if value.get('prediction') == 'Fatigue Subjects': #harusnya Fatigue Subjects
+        if value.get('prediction') == 'Fatigue Subjects': 
             time_data = value['time']
             timestamp = datetime(
                 int(time_data['year']),
@@ -33,6 +44,7 @@ def get_drowsiness_data():
                 int(time_data['second'])
             )
             value['timestamp'] = timestamp
+            # value['image'] = preprocess_base64_image(value['image'])
             parsed_data.append(value)
     return parsed_data
 
@@ -120,8 +132,33 @@ if 'selected_date' not in st.session_state:
 if mobile_view:
     if view_selected == 'Day':
         day_data = [entry for entry in drowsiness_data if entry['timestamp'].strftime('%d %b') == day_selected]
-        for entry in day_data:
-            st.info(f"Drowsiness detected at {entry['timestamp'].strftime('%I:%M %p')}")
+
+        if not day_data:
+            st.info(f"No drowsiness detected on {day_selected}")
+        else:
+            for entry in day_data:
+                timestamp = entry['timestamp'].strftime('%I:%M %p')
+                image_base64 = entry.get('image')
+                if image_base64:
+                    st.markdown(f"""
+                        <div style="display: flex; align-items: center; padding-bottom: 10px;">
+                            <div style="flex: 1;">
+                                <strong>Drowsiness detected at {timestamp}</strong>
+                            </div>
+                            <div style="flex: 0;">
+                                <img src="data:image/png;base64,{image_base64}" alt="Drowsiness Image" style="max-width: 50px; max-height: 50px; margin-left: 10px;">
+                            </div>
+                        </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown(f"""
+                        <div style="display: flex; align-items: center; padding-bottom: 10px;">
+                            <div style="flex: 1;">
+                                <strong>Drowsiness detected at {timestamp}</strong>
+                            </div>
+                        </div>
+                    """, unsafe_allow_html=True)
+
         if day_data:
             fig_day = px.histogram(day_data, x='timestamp', title='Drowsiness Detections Over the Day', nbins=24)
             st.plotly_chart(fig_day)
@@ -142,9 +179,29 @@ else:
                 st.session_state.selected_date = week_dates[i]
         selected_day_data = [entry for entry in drowsiness_data if entry['timestamp'].strftime('%d %b') == st.session_state.selected_date]
         for entry in selected_day_data:
-            st.info(f"Drowsiness detected at {entry['timestamp'].strftime('%I:%M %p')}")
+            timestamp = entry['timestamp'].strftime('%I:%M %p')
+            image_base64 = entry.get('image')
+            if image_base64:
+                st.markdown(f"""
+                    <div style="display: flex; align-items: center; padding-bottom: 10px;">
+                        <div style="flex: 1;">
+                            <strong>Drowsiness detected at {timestamp}</strong>
+                        </div>
+                        <div style="flex: 0;">
+                            <img src="data:image/png;base64,{image_base64}" alt="Drowsiness Image" style="max-width: 50px; max-height: 50px; margin-left: 10px;">
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+            else:
+                st.markdown(f"""
+                    <div style="display: flex; align-items: center; padding-bottom: 10px;">
+                        <div style="flex: 1;">
+                            <strong>Drowsiness detected at {timestamp}</strong>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
         if selected_day_data:
-            # st.subheader('Daily Analytics')
+            st.subheader('Daily Analytics')
             fig_day = px.histogram(selected_day_data, x='timestamp', title='Drowsiness Detections Over the Day', nbins=24)
             st.plotly_chart(fig_day)
     elif st.session_state.view == 'Week':
@@ -167,7 +224,7 @@ def calculate_weekly_change(data):
     current_week_count = len(current_week_data)
     last_week_count = len(last_week_data)
     if last_week_count == 0:
-        return "No data from last week to compare."
+        return 0
     change_percentage = ((current_week_count - last_week_count) / last_week_count) * 100
     return change_percentage
 
@@ -192,7 +249,10 @@ fig_overall = px.histogram(drowsiness_data, x='timestamp', title='Overall Drowsi
 st.plotly_chart(fig_overall)
 
 change_percentage = calculate_weekly_change(drowsiness_data)
-st.subheader(f"You've been {change_percentage}% drowsier this week.")
+if change_percentage == 0:
+    st.subheader("No data from last week to compare.")
+else:
+    st.subheader(f"You've been {change_percentage}% drowsier this week.")
 week_data_overall = aggregate_weekly_data(drowsiness_data)
 fig_week_overall = px.bar(week_data_overall, x='day', y='count', title='Weekly Drowsiness Comparison')
 st.plotly_chart(fig_week_overall)
