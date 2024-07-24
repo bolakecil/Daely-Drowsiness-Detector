@@ -219,7 +219,7 @@ else:
             st.session_state.page -= 1
 
         if not day_data:
-            st.info(f"No drowsiness detected on {day_selected}")
+            st.info(f"No drowsiness detected on {st.session_state.selected_date}")
         else:
             start_index = st.session_state.page * items_per_page
             end_index = start_index + items_per_page
@@ -248,15 +248,15 @@ else:
                         </div>
                     """, unsafe_allow_html=True)
 
-        col1, col2, col3 = st.columns([2, 1, 1])
-        with col1:
-            st.write(f"Page {st.session_state.page + 1} of {len(day_data) // items_per_page + (1 if len(day_data) % items_per_page != 0 else 0)}")
-        with col2:
-            if st.session_state.page > 0:
-                st.button("Previous", on_click=prev_page)
-        with col3:
-            if end_index < len(day_data):
-                st.button("Next", on_click=next_page) 
+            col1, col2, col3 = st.columns([2, 1, 1])
+            with col1:
+                st.write(f"Page {st.session_state.page + 1} of {len(day_data) // items_per_page + (1 if len(day_data) % items_per_page != 0 else 0)}")
+            with col2:
+                if st.session_state.page > 0:
+                    st.button("Previous", on_click=prev_page)
+            with col3:
+                if end_index < len(day_data):
+                    st.button("Next", on_click=next_page) 
 
         if day_data:
             st.subheader('Daily Analytics')
