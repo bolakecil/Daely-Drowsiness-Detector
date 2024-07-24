@@ -113,7 +113,8 @@ if mobile_view:
     today_str = today.strftime('%d %b')
     default_day_index = week_dates.index(today_str)
     view_selected = st.selectbox('Select View', ['Day', 'Week', 'Month'])
-    day_selected = st.selectbox('Select Day', week_dates, index=default_day_index)
+    if view_selected == 'Day':
+        day_selected = st.selectbox('Select Day', week_dates, index=default_day_index)
 else:
     col1, col2, col3 = st.columns(3)
     with col1:
