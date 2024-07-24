@@ -249,16 +249,26 @@ else:
                         </div>
                     """, unsafe_allow_html=True)
 
-            total_pages = len(day_data) // items_per_page + (1 if len(day_data) % items_per_page != 0 else 0)
-            st.write(f"Page {st.session_state.page + 1} of {total_pages}")
+            # total_pages = len(day_data) // items_per_page + (1 if len(day_data) % items_per_page != 0 else 0)
+            # st.write(f"Page {st.session_state.page + 1} of {total_pages}")
 
-            col1, col2 = st.columns(2)
+            # col1, col2 = st.columns(2)
+            # if st.session_state.page > 0:
+            #     with col1:
+            #         st.button("Previous", on_click=prev_page)
+            # if end_index < len(day_data):
+            #     with col2:
+            #         st.button("Next", on_click=next_page)
+        col1, col2, col3 = st.columns([2, 1, 1])
+        with col1:
+            st.write(f"Page {st.session_state.page + 1} of {len(day_data) // items_per_page + (1 if len(day_data) % items_per_page != 0 else 0)}")
+        with col2:
             if st.session_state.page > 0:
-                with col1:
-                    st.button("Previous", on_click=prev_page)
+                st.button("Previous", on_click=prev_page)
+        with col3:
             if end_index < len(day_data):
-                with col2:
-                    st.button("Next", on_click=next_page)
+                st.button("Next", on_click=next_page) 
+
         if day_data:
             st.subheader('Daily Analytics')
             fig_day = px.histogram(day_data, x='timestamp', title='Drowsiness Detections Over the Day', nbins=24)
