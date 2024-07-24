@@ -138,7 +138,7 @@ if mobile_view:
         if 'page' not in st.session_state:
             st.session_state.page = 0  
 
-        items_per_page = 8  
+        items_per_page = 6  
 
         def next_page():
             st.session_state.page += 1
@@ -163,7 +163,7 @@ if mobile_view:
                                 <strong>Drowsiness detected at {timestamp}</strong>
                             </div>
                             <div style="flex: 0;">
-                                <img src="data:image/png;base64,{image_base64}" alt="Drowsiness Image" style="width: 50px; height: 50px; margin-left: 10px;">
+                                <img src="data:image/png;base64,{image_base64}" alt="Drowsiness Image" style="height: 60px; object-fit: contain; margin-left: 10px;">
                             </div>
                         </div>
                     """, unsafe_allow_html=True)
@@ -236,7 +236,7 @@ else:
                                 <strong>Drowsiness detected at {timestamp}</strong>
                             </div>
                             <div style="flex: 0;">
-                                <img src="data:image/png;base64,{image_base64}" alt="Drowsiness Image" style="width: 50px; height: 50px; margin-left: 10px;">
+                                <img src="data:image/png;base64,{image_base64}" alt="Drowsiness Image" style="width: 80px; object-fit: contain; margin-left: 10px;">
                             </div>
                         </div>
                     """, unsafe_allow_html=True)
