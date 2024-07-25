@@ -220,7 +220,8 @@ if mobile_view:
         fig_week = px.bar(week_data, x='day', y='count', title='Drowsiness Detections Over the Week')
         st.plotly_chart(fig_week)
     elif view_selected == 'Month':
-        monthly_day_data, month_selected = handle_monthly_view(drowsiness_data)
+        current_year = datetime.now().year
+        monthly_day_data, month_selected = handle_monthly_view(drowsiness_data, current_year)
         if monthly_day_data.empty:
             st.write("No drowsiness data available for this month.")
         else:
@@ -297,15 +298,6 @@ else:
         fig_week = px.bar(week_data, x='day', y='count', title='Drowsiness Detections Over the Week')
         st.plotly_chart(fig_week)
     elif st.session_state.view == 'Month':
-        # monthly_day_data, month_selected = handle_monthly_view(drowsiness_data)
-        # if monthly_day_data.empty:
-        #     st.write("No drowsiness data available for this month.")
-        # else:
-        #     fig_month_daily = px.bar(monthly_day_data, x='day', y='count',
-        #                             title=f'Drowsiness Detections for {month_selected}',
-        #                             labels={'day': 'Day of the Month', 'count': 'Number of Drowsiness Events'})
-        #     fig_month_daily.update_layout(xaxis_type='category')
-        #     st.plotly_chart(fig_month_daily)
         current_year = datetime.now().year
         monthly_day_data, month_selected = handle_monthly_view(drowsiness_data, current_year)
         if monthly_day_data.empty:
