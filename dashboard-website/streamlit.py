@@ -7,6 +7,7 @@ from firebase_admin import credentials, db
 from PIL import Image
 import base64
 import io
+import calendar
 
 st.set_page_config(page_title="Drowsiness Detection Dashboard")
 
