@@ -7,32 +7,24 @@ from firebase_admin import credentials, db
 from PIL import Image
 import base64
 import io
-import toml
-import calendar
 
 st.set_page_config(page_title="Drowsiness Detection Dashboard")
 
-# Load secrets from TOML file
-with open("secrets.toml", "r") as f:
-    secrets = toml.load(f)
-
-firebase_config = secrets["firebase"]
-
 if not firebase_admin._apps:
-    firebase_credentials = {
-        "type": firebase_config["type"],
-        "project_id": firebase_config["project_id"],
-        "private_key_id": firebase_config["private_key_id"],
-        "private_key": firebase_config["private_key"].replace("\\n", "\n"),
-        "client_email": firebase_config["client_email"],
-        "client_id": firebase_config["client_id"],
-        "auth_uri": firebase_config["auth_uri"],
-        "token_uri": firebase_config["token_uri"],
-        "auth_provider_x509_cert_url": firebase_config["auth_provider_x509_cert_url"],
-        "client_x509_cert_url": firebase_config["client_x509_cert_url"]
+    firebase_config = {
+        "type": st.secrets["firebase"]["type"],
+        "project_id": st.secrets["firebase"]["project_id"],
+        "private_key_id": st.secrets["firebase"]["private_key_id"],
+        "private_key": st.secrets["firebase"]["private_key"].replace("\\n", "\n"),
+        "client_email": st.secrets["firebase"]["client_email"],
+        "client_id": st.secrets["firebase"]["client_id"],
+        "auth_uri": st.secrets["firebase"]["auth_uri"],
+        "token_uri": st.secrets["firebase"]["token_uri"],
+        "auth_provider_x509_cert_url": st.secrets["firebase"]["auth_provider_x509_cert_url"],
+        "client_x509_cert_url": st.secrets["firebase"]["client_x509_cert_url"]
     }
-    cred = credentials.Certificate(firebase_credentials)
-    firebase_admin.initialize_app(cred, {'databaseURL': firebase_config["database_url"]})
+    cred = credentials.Certificate(firebase_config)
+    firebase_admin.initialize_app(cred, {'databaseURL': st.secrets["firebase"]["database_url"]})
 
 ref = db.reference('/')
 
@@ -304,6 +296,15 @@ else:
         fig_week = px.bar(week_data, x='day', y='count', title='Drowsiness Detections Over the Week')
         st.plotly_chart(fig_week)
     elif st.session_state.view == 'Month':
+        # monthly_day_data, month_selected = handle_monthly_view(drowsiness_data)
+        # if monthly_day_data.empty:
+        #     st.write("No drowsiness data available for this month.")
+        # else:
+        #     fig_month_daily = px.bar(monthly_day_data, x='day', y='count',
+        #                             title=f'Drowsiness Detections for {month_selected}',
+        #                             labels={'day': 'Day of the Month', 'count': 'Number of Drowsiness Events'})
+        #     fig_month_daily.update_layout(xaxis_type='category')
+        #     st.plotly_chart(fig_month_daily)
         current_year = datetime.now().year
         monthly_day_data, month_selected = handle_monthly_view(drowsiness_data, current_year)
         if monthly_day_data.empty:
