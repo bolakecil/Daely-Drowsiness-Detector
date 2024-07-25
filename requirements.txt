@@ -4,3 +4,4 @@ pandas
 firebase-admin
 python-dotenv
 pillow
+toml
