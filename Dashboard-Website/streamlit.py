@@ -160,7 +160,6 @@ if mobile_view:
         day_data = [entry for entry in drowsiness_data if entry['timestamp'].strftime('%d %b') == day_selected]
         day_data.sort(key=lambda x: x['timestamp'], reverse=True)
 
-        st.info(f"{len(day_data)} drowsiness detected")
         items_per_page = 6  
 
         if not day_data:
