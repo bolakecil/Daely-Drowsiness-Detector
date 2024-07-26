@@ -74,6 +74,10 @@ The Drowsiness-IoT component includes the code for the ESP32-CAM, which captures
   - Connects to Wi-Fi 🌐
   - Captures images and sends them to the server for analysis 🖼️
   - Displays drowsiness alerts on the LCD and sounds the buzzer 🚨
+ 
+## Dataset 📊
+
+The model used in this project is trained with the [Drowsiness Detection Dataset](https://universe.roboflow.com/esd-krexe/drowsiness-detection-0mcjg/dataset/1) from Roboflow. This dataset contains a wide variety of images and annotations, enabling the model to learn and recognize different signs of drowsiness effectively.
 
 ## Team 💻✨
 
