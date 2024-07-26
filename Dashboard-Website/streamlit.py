@@ -30,9 +30,6 @@ if not firebase_admin._apps:
 ref = db.reference('/')
 
 def preprocess_base64_image(base64_string):
-    """
-    Returns image from base64 encoded image
-    """
     image_data = base64.b64decode(base64_string)
     image = Image.open(io.BytesIO(image_data))
     return image
@@ -43,7 +40,7 @@ def get_drowsiness_data():
         return []
     parsed_data = []
     for key, value in data.items():
-        if value.get('prediction') == 'Fatigue Subjects': 
+        if value.get('prediction') == 'Fatigue Subjects':
             time_data = value['time']
             timestamp = datetime(
                 int(time_data['year']),
@@ -54,14 +51,13 @@ def get_drowsiness_data():
                 int(time_data['second'])
             )
             value['timestamp'] = timestamp
-            # value['image'] = preprocess_base64_image(value['image'])
             parsed_data.append(value)
     return parsed_data
 
 if 'active_button' not in st.session_state:
-    st.session_state.active_button = 'Day'  # Default active button and view
+    st.session_state.active_button = 'Day'
 if 'view' not in st.session_state:
-    st.session_state.view = 'Day'  # Default view
+    st.session_state.view = 'Day'
 
 def set_active_button(button_name):
     st.session_state.active_button = button_name
@@ -104,15 +100,15 @@ st.title('Hi, Supriyadi.')
 st.header(f'You\'ve been drowsy {drowsy_today} times today.')
 
 today = datetime.today()
-start_of_week = today - timedelta(days=today.weekday()) # Find the start of this week
-week_dates = [(start_of_week + timedelta(days=i)).strftime('%d %b') for i in range(7)] # Generate dates for the week
+start_of_week = today - timedelta(days=today.weekday())
+week_dates = [(start_of_week + timedelta(days=i)).strftime('%d %b') for i in range(7)]
 mobile_view = st.checkbox('Switch to Mobile View')
 
 def aggregate_weekly_data(data):
     df = pd.DataFrame(data)
     df['week'] = df['timestamp'].dt.isocalendar().week
     df['day'] = df['timestamp'].dt.day_name()
-    weekly_data = df.groupby('day').size().reindex(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']).reset_index(name='count')
+    weekly_data = df.groupby('day').size().reindex(list(calendar.day_name)).reset_index(name='count')
     return weekly_data
 
 def aggregate_monthly_data(data, selected_month):
@@ -145,13 +141,13 @@ else:
             set_active_button('Month')
             
 if 'selected_date' not in st.session_state:
-    st.session_state.selected_date = today.strftime('%d %b')  # Default to today's date
+    st.session_state.selected_date = today.strftime('%d %b')
 
 def handle_monthly_view(data, current_year):
-    months = list(calendar.month_name)[1:]  # Get month names and skip the first empty entry
+    months = list(calendar.month_name)[1:]
     current_month = datetime.now().month
-    month_selected = st.selectbox('Select Month', months, index=current_month-1)  # Use month names instead of numbers
-    month_index = months.index(month_selected) + 1  # Get the index of the selected month (1-based)
+    month_selected = st.selectbox('Select Month', months, index=current_month-1)
+    month_index = months.index(month_selected) + 1
     monthly_day_data = aggregate_monthly_data(data, month_index)
     return monthly_day_data, month_selected
 
@@ -160,14 +156,15 @@ if mobile_view:
         day_data = [entry for entry in drowsiness_data if entry['timestamp'].strftime('%d %b') == day_selected]
         day_data.sort(key=lambda x: x['timestamp'], reverse=True)
 
-        items_per_page = 6  
+        st.info(f"{len(day_data)} drowsiness detected")
+        items_per_page = 6
 
         if not day_data:
             st.info(f"No drowsiness detected on {day_selected}")
         else:
             if len(day_data) > items_per_page:
                 if 'page' not in st.session_state:
-                    st.session_state.page = 0   
+                    st.session_state.page = 0
                 def next_page():
                     st.session_state.page += 1
 
@@ -241,14 +238,14 @@ else:
         day_data = [entry for entry in drowsiness_data if entry['timestamp'].strftime('%d %b') == st.session_state.selected_date]
         day_data.sort(key=lambda x: x['timestamp'], reverse=True)
 
-        items_per_page = 6  
+        items_per_page = 6
 
         if not day_data:
             st.info(f"No drowsiness detected on {st.session_state.selected_date}")
         else:
             if len(day_data) > items_per_page:
                 if 'page' not in st.session_state:
-                    st.session_state.page = 0   
+                    st.session_state.page = 0
                 def next_page():
                     st.session_state.page += 1
 
@@ -333,7 +330,7 @@ def calculate_weekly_change(data):
 
 def get_highest_drowsiness_period(data):
     df = pd.DataFrame(data)
-    df['time_period'] = pd.cut(df['timestamp'].dt.hour, #edit as needed, interval 1h or 2h
+    df['time_period'] = pd.cut(df['timestamp'].dt.hour,
                                bins=[0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24],
                                labels=['22:00-00:00', '00:00-02:00', '02:00-04:00', 
                                        '04:00-06:00', '06:00-08:00', '08:00-10:00', 
@@ -351,13 +348,11 @@ def calculate_weekly_data(data):
     current_week = datetime.now().isocalendar()[1]
     last_week = current_week - 1
     
-    this_week_data = data[data['week'] == current_week].groupby('day_of_week').size().reindex(calendar.day_name).fillna(0)
-    last_week_data = data[data['week'] == last_week].groupby('day_of_week').size().reindex(calendar.day_name).fillna(0)
+    this_week_data = data[data['week'] == current_week].groupby('day_of_week').size().reindex(list(calendar.day_name)).fillna(0)
+    last_week_data = data[data['week'] == last_week].groupby('day_of_week').size().reindex(list(calendar.day_name)).fillna(0)
     
     return this_week_data, last_week_data
 
-
-# General analytics applicable to all views
 drowsy_period = get_highest_drowsiness_period(drowsiness_data)
 st.header('Overall Analytics')
 st.subheader(f"You tend to feel most drowsy around {drowsy_period} each day.")
@@ -380,20 +375,20 @@ change_percentage = calculate_weekly_change(drowsiness_data)
 if change_percentage == 0:
     st.subheader("No data from last week to compare.")
 else:
-    st.subheader(f"You've been {change_percentage}% drowsier this week.")
+    st.subheader(f"You've been {int(round(change_percentage, 0))}% drowsier this week.")
 
 drowsiness_df = pd.DataFrame(drowsiness_data)
-drowsiness_df['timestamp'] = pd.to_datetime(drowsiness_df['timestamp'], errors='coerce')  
+drowsiness_df['timestamp'] = pd.to_datetime(drowsiness_df['timestamp'], errors='coerce')
 
 this_week_data, last_week_data = calculate_weekly_data(drowsiness_df)
 
 week_comparison_df = pd.DataFrame({
-    'Day of the Week': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],  
-    'This Week': this_week_data,
-    'Last Week': last_week_data
+    'Day of the Week': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    'This Week': this_week_data.values,
+    'Last Week': last_week_data.values
 })
 
 st.text(f'This week : {int(sum(this_week_data))} | Last week : {int(sum(last_week_data))}')
 fig_week_comparison = px.bar(week_comparison_df, x='Day of the Week', y=['This Week', 'Last Week'], barmode='group',
-                             labels={'value': 'Number of Drowsiness Events', 'variable': 'Week'})
+                            labels={'value': 'Number of Drowsiness Events', 'variable': 'Week'})
 st.plotly_chart(fig_week_comparison)
