@@ -19,7 +19,7 @@ Welcome to the **Daely Drowsiness Detector**, an AI-IoT Project! 🚗💡 This i
 
 ## Project Overview
 
-The **Daely Drowsiness Detector AI-IoT Project** is designed to monitor and analyze driver drowsiness in real-time. The project consists of three main parts: a Dashboard-Website, a Drowsiness-Detector system using deep learning models, and an IoT component using an ESP32-CAM to capture and send data.
+The **Daely Drowsiness Detector** is designed to monitor and analyze driver drowsiness in real-time. The project consists of three main parts: a Dashboard-Website, a Drowsiness-Detector system using deep learning models, and an IoT component using an ESP32-CAM to capture and send data.
 
 ### Background
 
