@@ -16,7 +16,6 @@ Welcome to the **Daely Drowsiness Detector**, an AI-IoT Project! 🚗💡 This i
 - [Usage](#usage-🚀)
 - [Electrical Wiring Diagram](#electrical-wiring-diagram-🔌)
 - [Contributing](#contributing-🤝)
-- [License](#license-📄)
 
 ## Project Overview
 
