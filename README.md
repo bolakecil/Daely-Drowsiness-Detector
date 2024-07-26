@@ -133,7 +133,7 @@ The dashboard is already deployed and can be accessed at [Drowsiness Detector Da
 2. Connect your ESP32-CAM to your computer. 
 3. Configure the Wi-Fi credentials and server URL in the code. 
 4. Upload the code to the ESP32-CAM. 
-5. Monitor the serial output for connection and detection logs. 🖥
+5. Monitor the serial output for connection and detection logs. 
 
 ## Electrical Wiring Diagram 🔌
 
@@ -151,10 +151,6 @@ We welcome contributions! Please follow these steps to contribute:
 4. Commit your changes (`git commit -m 'Add new feature'`). 
 5. Push to the branch (`git push origin feature/your-feature-name`). 
 6. Open a pull request. 
-
-## License 📄
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
