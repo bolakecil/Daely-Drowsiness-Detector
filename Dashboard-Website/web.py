@@ -151,23 +151,25 @@ if mobile_view:
         day_data = [entry for entry in drowsiness_data if entry['timestamp'].strftime('%d %b') == day_selected]
         day_data.sort(key=lambda x: x['timestamp'], reverse=True)
 
-        if 'page' not in st.session_state:
-            st.session_state.page = 0  
-
         items_per_page = 6  
-
-        def next_page():
-            st.session_state.page += 1
-
-        def prev_page():
-            st.session_state.page -= 1
 
         if not day_data:
             st.info(f"No drowsiness detected on {day_selected}")
         else:
-            start_index = st.session_state.page * items_per_page
-            end_index = start_index + items_per_page
-            displayed_data = day_data[start_index:end_index]
+            if len(day_data) > items_per_page:
+                if 'page' not in st.session_state:
+                    st.session_state.page = 0   
+                def next_page():
+                    st.session_state.page += 1
+
+                def prev_page():
+                    st.session_state.page -= 1
+            
+                start_index = st.session_state.page * items_per_page
+                end_index = start_index + items_per_page
+                displayed_data = day_data[start_index:end_index]
+            else:
+                displayed_data = day_data
 
             for entry in displayed_data:
                 timestamp = entry['timestamp'].strftime('%I:%M %p')
@@ -192,16 +194,17 @@ if mobile_view:
                         </div>
                     """, unsafe_allow_html=True)
 
-            total_pages = len(day_data) // items_per_page + (1 if len(day_data) % items_per_page != 0 else 0)
-            st.write(f"Page {st.session_state.page + 1} of {total_pages}")
+            if len(day_data) > items_per_page:
+                total_pages = len(day_data) // items_per_page + (1 if len(day_data) % items_per_page != 0 else 0)
+                st.write(f"Page {st.session_state.page + 1} of {total_pages}")
 
-            col1, col2 = st.columns(2)
-            if st.session_state.page > 0:
-                with col1:
-                    st.button("Previous", on_click=prev_page)
-            if end_index < len(day_data):
-                with col2:
-                    st.button("Next", on_click=next_page)
+                col1, col2 = st.columns(2)
+                if st.session_state.page > 0:
+                    with col1:
+                        st.button("Previous", on_click=prev_page)
+                if end_index < len(day_data):
+                    with col2:
+                        st.button("Next", on_click=next_page)
 
         if day_data:
             fig_day = px.histogram(day_data, x='timestamp', title='Drowsiness Detections Over the Day', nbins=24)
@@ -227,23 +230,25 @@ else:
         day_data = [entry for entry in drowsiness_data if entry['timestamp'].strftime('%d %b') == st.session_state.selected_date]
         day_data.sort(key=lambda x: x['timestamp'], reverse=True)
 
-        if 'page' not in st.session_state:
-            st.session_state.page = 0  
-
-        items_per_page = 8  
-
-        def next_page():
-            st.session_state.page += 1
-
-        def prev_page():
-            st.session_state.page -= 1
+        items_per_page = 6  
 
         if not day_data:
             st.info(f"No drowsiness detected on {st.session_state.selected_date}")
         else:
-            start_index = st.session_state.page * items_per_page
-            end_index = start_index + items_per_page
-            displayed_data = day_data[start_index:end_index]
+            if len(day_data) > items_per_page:
+                if 'page' not in st.session_state:
+                    st.session_state.page = 0   
+                def next_page():
+                    st.session_state.page += 1
+
+                def prev_page():
+                    st.session_state.page -= 1
+            
+                start_index = st.session_state.page * items_per_page
+                end_index = start_index + items_per_page
+                displayed_data = day_data[start_index:end_index]
+            else:
+                displayed_data = day_data
 
             for entry in displayed_data:
                 timestamp = entry['timestamp'].strftime('%I:%M %p')
@@ -255,7 +260,7 @@ else:
                                 <strong>Drowsiness detected at {timestamp}</strong>
                             </div>
                             <div style="flex: 0;">
-                                <img src="data:image/png;base64,{image_base64}" alt="Drowsiness Image" style="width: 80px; object-fit: contain; margin-left: 10px;">
+                                <img src="data:image/png;base64,{image_base64}" alt="Drowsiness Image" style="height: 60px; object-fit: contain; margin-left: 10px;">
                             </div>
                         </div>
                     """, unsafe_allow_html=True)
@@ -268,17 +273,20 @@ else:
                         </div>
                     """, unsafe_allow_html=True)
 
-            total_pages = len(day_data) // items_per_page + (1 if len(day_data) % items_per_page != 0 else 0)
-            st.write(f"Page {st.session_state.page + 1} of {total_pages}")
+            if len(day_data) > items_per_page:
+                total_pages = len(day_data) // items_per_page + (1 if len(day_data) % items_per_page != 0 else 0)
+                st.write(f"Page {st.session_state.page + 1} of {total_pages}")
 
-            col1, col2 = st.columns(2)
-            if st.session_state.page > 0:
-                with col1:
-                    st.button("Previous", on_click=prev_page)
-            if end_index < len(day_data):
-                with col2:
-                    st.button("Next", on_click=next_page)
+                col1, col2 = st.columns(2)
+                if st.session_state.page > 0:
+                    with col1:
+                        st.button("Previous", on_click=prev_page)
+                if end_index < len(day_data):
+                    with col2:
+                        st.button("Next", on_click=next_page)
+
         if day_data:
+            st.text("")
             st.subheader('Daily Analytics')
             fig_day = px.histogram(day_data, x='timestamp', title='Drowsiness Detections Over the Day', nbins=24)
             st.plotly_chart(fig_day)
@@ -288,15 +296,7 @@ else:
         fig_week = px.bar(week_data, x='day', y='count', title='Drowsiness Detections Over the Week')
         st.plotly_chart(fig_week)
     elif st.session_state.view == 'Month':
-        # monthly_day_data, month_selected = handle_monthly_view(drowsiness_data)
-        # if monthly_day_data.empty:
-        #     st.write("No drowsiness data available for this month.")
-        # else:
-        #     fig_month_daily = px.bar(monthly_day_data, x='day', y='count',
-        #                             title=f'Drowsiness Detections for {month_selected}',
-        #                             labels={'day': 'Day of the Month', 'count': 'Number of Drowsiness Events'})
-        #     fig_month_daily.update_layout(xaxis_type='category')
-        #     st.plotly_chart(fig_month_daily)
+
         current_year = datetime.now().year
         monthly_day_data, month_selected = handle_monthly_view(drowsiness_data, current_year)
         if monthly_day_data.empty:
@@ -334,11 +334,37 @@ def get_highest_drowsiness_period(data):
     max_count = df['time_period'].value_counts().max()
     return highest_period
 
+
+def calculate_weekly_data(data):
+    data['week'] = data['timestamp'].dt.isocalendar().week
+    data['day_of_week'] = data['timestamp'].dt.day_name()
+    
+    current_week = datetime.now().isocalendar()[1]
+    last_week = current_week - 1
+    
+    this_week_data = data[data['week'] == current_week].groupby('day_of_week').size().reindex(calendar.day_name).fillna(0)
+    last_week_data = data[data['week'] == last_week].groupby('day_of_week').size().reindex(calendar.day_name).fillna(0)
+    
+    return this_week_data, last_week_data
+
+
 # General analytics applicable to all views
 drowsy_period = get_highest_drowsiness_period(drowsiness_data)
 st.header('Overall Analytics')
 st.subheader(f"You tend to feel most drowsy around {drowsy_period} each day.")
-fig_overall = px.histogram(drowsiness_data, x='timestamp', title='Overall Drowsiness Detections Over Time', nbins=24)
+
+drowsiness_df = pd.DataFrame(drowsiness_data)
+if drowsiness_df['timestamp'].dtype != 'datetime64[ns]':
+    drowsiness_df['timestamp'] = pd.to_datetime(drowsiness_df['timestamp'], errors='coerce')
+drowsiness_df['hour'] = drowsiness_df['timestamp'].dt.hour
+hourly_counts = drowsiness_df.groupby('hour').size().reset_index(name='count')
+all_hours = pd.DataFrame({'hour': range(24)})
+hourly_data = all_hours.merge(hourly_counts, on='hour', how='left').fillna(0)
+fig_overall = px.bar(hourly_data, x='hour', y='count',
+                     title='Overall Drowsiness Detections Over Time',
+                     labels={'hour': 'Hour of the Day', 'count': 'Number of Drowsiness Events'},
+                     text_auto=True)
+fig_overall.update_xaxes(tickmode='array', tickvals=list(range(24)), ticktext=[f"{i}:00" for i in range(24)])
 st.plotly_chart(fig_overall)
 
 change_percentage = calculate_weekly_change(drowsiness_data)
@@ -346,6 +372,19 @@ if change_percentage == 0:
     st.subheader("No data from last week to compare.")
 else:
     st.subheader(f"You've been {change_percentage}% drowsier this week.")
-week_data_overall = aggregate_weekly_data(drowsiness_data)
-fig_week_overall = px.bar(week_data_overall, x='day', y='count', title='Weekly Drowsiness Comparison')
-st.plotly_chart(fig_week_overall)
+
+drowsiness_df = pd.DataFrame(drowsiness_data)
+drowsiness_df['timestamp'] = pd.to_datetime(drowsiness_df['timestamp'], errors='coerce')  
+
+this_week_data, last_week_data = calculate_weekly_data(drowsiness_df)
+
+week_comparison_df = pd.DataFrame({
+    'Day of the Week': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],  
+    'This Week': this_week_data,
+    'Last Week': last_week_data
+})
+
+st.text(f'This week : {int(sum(this_week_data))} | Last week : {int(sum(last_week_data))}')
+fig_week_comparison = px.bar(week_comparison_df, x='Day of the Week', y=['This Week', 'Last Week'], barmode='group',
+                             labels={'value': 'Number of Drowsiness Events', 'variable': 'Week'})
+st.plotly_chart(fig_week_comparison)
