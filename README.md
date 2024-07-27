@@ -117,7 +117,7 @@ pip install -r requirements.txt
 
 The dashboard is already deployed and can be accessed at [Drowsiness Detector Dashboard](https://drowsiness-detector-dashboard.streamlit.app/).
 
-### Running the Drowsiness Detector
+### Running the Drowsiness Detector Locally
 
 1. Navigate to the `dashboard-website` directory:
 
