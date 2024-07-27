@@ -119,16 +119,16 @@ The dashboard is already deployed and can be accessed at [Drowsiness Detector Da
 
 ### Running the Drowsiness Detector
 
-1. Navigate to the `drowsiness-detector` directory:
+1. Navigate to the `dashboard-website` directory:
 
    ```bash
-   cd drowsiness-detector
+   cd dashboard-website
    ```
 
-2. Open the evaluation notebook and run the cells:
+2. Open streamlit.py and run this command:
 
    ```bash
-   jupyter notebook evaluation.ipynb
+   streamlit run dashboard-website/streamlit.py
    ```
 
 ### Setting up the Drowsiness IoT ⚙️
