@@ -117,7 +117,7 @@ pip install -r requirements.txt
 
 The dashboard is already deployed and can be accessed at [Drowsiness Detector Dashboard](https://drowsiness-detector-dashboard.streamlit.app/).
 
-### Running the Dashboard Locally
+### Running the Drowsiness Detector Locally
 
 1. Navigate to the `dashboard-website` directory:
 
@@ -129,6 +129,20 @@ The dashboard is already deployed and can be accessed at [Drowsiness Detector Da
 
    ```bash
    streamlit run dashboard-website/streamlit.py
+   ```
+
+### Viewing Model Evaluation
+
+1. Navigate to the `drowsiness-detector` directory:
+
+   ```bash
+   cd drowsiness-detector
+   ```
+
+2. Open the evaluation notebook and run the cells:
+
+   ```bash
+   jupyter notebook evaluation.ipynb
    ```
 
 ### Setting up the Drowsiness IoT ⚙️
