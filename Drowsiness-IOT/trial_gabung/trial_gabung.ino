@@ -34,8 +34,8 @@ LiquidCrystal_I2C lcd(LCD_ADDRESS, LCD_COLUMNS, LCD_ROWS);
 // 4 for flash led or 33 for normal led
 #define LED_GPIO_NUM   4
 
-const char *ssid = "Jehoiada's A23";
-const char *password = "15151515";
+const char *ssid = "jesheng";
+const char *password = "na77na10";
 
 const char* serverName = "http://192.168.242.38:5000/predict";
 
@@ -89,7 +89,7 @@ void setupCamera() {
 
 void setupLCD() {
     Wire.begin(SDA_PIN, SCL_PIN);
-    lcd.init();
+    lcd.begin();
     lcd.backlight();
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -108,14 +108,14 @@ void printMemoryUsage() {
 void setup() {
     Serial.begin(115200);
     printMemoryUsage();
-    setupCamera(); // Initialize the camera
-    Serial.println("Camera done");
-    printMemoryUsage();
+    // setupCamera(); // Initialize the camera
+    // Serial.println("Camera done");
+    // printMemoryUsage();
     setupLCD();    // Initialize the LCD
     printMemoryUsage();
     // pinMode(BUZZER_PIN, OUTPUT); // Set the buzzer pin as output
     // noTone(BUZZER_PIN);
-    printMemoryUsage();
+    printMemoryUsage(); 
     Serial.println("Setup done");
 }
 int count = 0;
@@ -145,11 +145,11 @@ void loop() {
   // Send HTTP POST request
   int httpResponseCode = http.POST(jsonPayload);
 
-  if (httpResponseCode > 0) {
+  if (true) {
     String response = http.getString();
     String keyword = "Fatigue Subjects";
     Serial.println(response.indexOf(keyword));
-    if(response.indexOf(keyword)!=-1){
+    if(true){
       count++;
       if (count==3) {
         lcd.clear();
