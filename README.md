@@ -1,4 +1,4 @@
-# Daely Drowsiness Detector
+# Daely Drowsiness Detector 🚗
 
 Welcome to the **Daely Drowsiness Detector**, an AI-IoT Project! 🚗💡 This innovative project aims to enhance driver safety by detecting drowsiness in real-time using AI and IoT technologies. Below you will find an overview of the project, descriptions of its main components, and instructions on how to get started.
 
