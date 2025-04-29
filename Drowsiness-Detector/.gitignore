@@ -7,3 +7,5 @@ model_testing.ipynb
 modules_testing.ipynb
 credentials.json
 api_testing.py
+
+**/**.pt
