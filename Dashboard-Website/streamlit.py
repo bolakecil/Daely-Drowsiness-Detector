@@ -117,7 +117,7 @@ def aggregate_monthly_data(data, selected_month):
     df['day'] = df['timestamp'].dt.day
     daily_data = df.groupby('day').size().reset_index(name='count')
 
-    max_day = pd.Timestamp(year=today.year, month=selected_month, day=1).days_in_month
+    max_day = pd.Timestamp(year=2025, month=selected_month, day=1).days_in_month
     all_days = pd.DataFrame({'day': range(1, max_day + 1)})
     daily_data = pd.merge(all_days, daily_data, on='day', how='left').fillna(0)
     return daily_data
