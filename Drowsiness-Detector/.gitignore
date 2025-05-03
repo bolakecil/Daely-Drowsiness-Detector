@@ -2,6 +2,7 @@ runs
 __pycache__
 images
 **/**.jpg
+**/**.png
 .env
 model_testing.ipynb
 modules_testing.ipynb
