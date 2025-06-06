@@ -8,17 +8,17 @@ from modules import load_models, detect_face_and_classify, create_payload_for_db
 from time import time
 
 # Load environment and initialize Firebase
-# load_dotenv()
-# DATABASE_URL = os.getenv("DATABASE_URL")
-# cred = credentials.Certificate('credentials.json')
-# firebase_admin.initialize_app(cred, {'databaseURL': DATABASE_URL})
-# ref = db.reference('/')
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
+cred = credentials.Certificate('credentials.json')
+firebase_admin.initialize_app(cred, {'databaseURL': DATABASE_URL})
+ref = db.reference('/')
 
 # Initialize Flask
 app = Flask(__name__)
 
 # Load YOLO models once
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'mps')
 face_model, classify_model, class_names = load_models(device)
 face_model.to(device)
 classify_model.to(device)
@@ -43,8 +43,8 @@ def predict_():
             print("error: No face detected")
             return jsonify({'error': 'No face detected'}), 200
         
-        # payload = create_payload_for_db(base64_string, predicted_class)
-        # ref.push(payload)
+        payload = create_payload_for_db(base64_string, predicted_class)
+        ref.push(payload)
 
         print("prediction", predicted_class)
         print(time() - start)
@@ -56,4 +56,4 @@ def predict_():
     
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8888, debug=True) 
+    app.run(host='0.0.0.0', port=8888, debug=True)
